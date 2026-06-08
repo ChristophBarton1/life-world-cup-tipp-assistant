@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>World Cup 2026 Prediction Assistant · Precise Score Forecasts</title>
+<meta name="description" content="Free World Cup 2026 prediction tool. Precise scoreline forecasts from bookmaker odds using a Poisson model — for every match, in 10 languages." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f6f5f1;--card:#ffffff;--ink:#1a1916;--ink-soft:#3c3a35;--muted:#8a857b;
+    --line:#e6e3db;--line-strong:#d8d4ca;--accent:#9a2a1f;--home:#15694e;--draw:#c3bdb0;--away:#a23b2e;
+    --serif:"Fraunces",Georgia,serif;--sans:"Inter",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  ::selection{background:#e9e3d3}
+  [dir="rtl"] body{font-family:"Inter","Segoe UI",Tahoma,sans-serif}
+
+  /* Ticker */
+  .ticker{position:sticky;top:0;z-index:40;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:9px 24px}
+  .live-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 1.4s infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .ticker-track{flex:1;overflow:hidden;white-space:nowrap;mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent)}
+  .ticker-move{display:inline-block;padding-left:100%;animation:scroll 50s linear infinite}
+  .ticker:hover .ticker-move{animation-play-state:paused}
+  @keyframes scroll{to{transform:translateX(-100%)}}
+  .ticker-item{display:inline-flex;align-items:baseline;gap:8px;margin:0 28px;font-size:13.5px;color:var(--ink-soft)}
+  .ticker-item .tag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .ticker-item b{color:var(--ink);font-weight:600}
+
+  /* Masthead */
+  .util{display:flex;align-items:center;justify-content:space-between;padding-top:22px}
+  .brand{font-weight:700;font-size:13px;letter-spacing:.02em;color:var(--ink)}
+  .langsel{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--ink);background:var(--card);
+    border:1px solid var(--line-strong);border-radius:5px;padding:8px 12px;cursor:pointer;outline:none}
+  .langsel:focus{border-color:var(--ink)}
+  header.masthead{padding:8px 0 26px;border-bottom:2px solid var(--ink)}
+  .kicker{font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-top:20px}
+  .masthead h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,74px);line-height:.98;letter-spacing:-.02em;margin:14px 0 0}
+  .masthead .lede{margin:16px 0 0;max-width:620px;font-size:16px;color:var(--ink-soft)}
+  .masthead .lede b{font-weight:600;color:var(--ink)}
+  .strip{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:4px;background:var(--card);margin-top:26px;overflow:hidden}
+  .strip .cell{flex:1;min-width:140px;padding:16px 20px;border-right:1px solid var(--line)}
+  .strip .cell:last-child{border-right:none}
+  .strip .n{font-family:var(--serif);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+  .strip .l{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:7px}
+
+  /* Search + controls */
+  .searchbar{position:relative;margin:30px 0 0}
+  .searchbar svg{position:absolute;inset-inline-start:16px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .searchbar input{width:100%;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--card);
+    border:1px solid var(--line-strong);border-radius:5px;padding:14px 44px;transition:.15s;outline:none}
+  .searchbar input::placeholder{color:var(--muted)}
+  .searchbar input:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(26,25,22,.06)}
+  .searchbar .clear{position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);cursor:pointer;border:none;background:transparent;color:var(--muted);font-size:18px;line-height:1;padding:4px;display:none}
+  .searchbar .clear.show{display:block}
+  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:14px 0 6px}
+  .btn{cursor:pointer;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);padding:9px 16px;border-radius:4px;font-weight:600;font-size:13.5px;font-family:var(--sans);transition:.15s}
+  .btn:hover{border-color:var(--ink)}
+  .btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .seg{display:flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden}
+  .seg button{cursor:pointer;border:none;background:var(--card);color:var(--muted);padding:9px 15px;font-weight:600;font-size:13px;font-family:var(--sans);border-inline-end:1px solid var(--line);transition:.15s}
+  .seg button:last-child{border-inline-end:none}
+  .seg button.active{background:var(--ink);color:#fff}
+  .auto-wrap{margin-inline-start:auto;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;font-weight:500}
+  .switch{position:relative;width:42px;height:24px;background:#ddd9cf;border-radius:999px;cursor:pointer;transition:.2s;flex:0 0 auto}
+  .switch.on{background:var(--home)}
+  .switch i{position:absolute;top:3px;inset-inline-start:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch.on i{inset-inline-start:21px}
+  .feed{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--muted)}
+  .feed .fd{width:8px;height:8px;border-radius:50%;background:#c9a23a}
+  .feed.live .fd{background:var(--home)}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:18px 0 8px}
+  .md-head{grid-column:1/-1;background:var(--paper);padding:22px 4px 10px;display:flex;align-items:baseline;gap:12px}
+  .md-head .t{font-family:var(--serif);font-size:20px;font-weight:600}
+  .md-head .r{flex:1;height:1px;background:var(--line-strong)}
+  .card{background:var(--card);padding:18px 18px 14px;position:relative;transition:background .15s;--tc:var(--ink)}
+  .card:hover{background:#fffdf9}
+  .card .toprule{position:absolute;top:0;inset-inline-start:0;width:36px;height:3px;background:var(--tc)}
+  .m-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:16px}
+  .m-top .grp{font-weight:600;letter-spacing:.04em;color:var(--ink-soft)}
+  .m-top time{font-variant-numeric:tabular-nums}
+  .livebox{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:11px;font-variant-numeric:tabular-nums;
+    padding:2px 8px;border-radius:4px;letter-spacing:.03em}
+  .livebox.on{background:var(--accent);color:#fff}
+  .livebox.fin{background:var(--ink);color:#fff}
+  .livebox .ld{width:6px;height:6px;border-radius:50%;background:#fff;animation:blink 1.2s infinite}
+  .fixture{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:18px}
+  .side{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
+  .side .tname{font-weight:600;font-size:14px;letter-spacing:-.01em}
+  img.flag{width:42px;height:28px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.18);display:block}
+  img.flag.sm{width:22px;height:15px;border-radius:2px}
+  .flag-x{display:inline-block;width:42px;height:28px;border-radius:3px;background:repeating-linear-gradient(45deg,#e6e3db,#e6e3db 5px,#efece4 5px,#efece4 10px);box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+  .flag-x.sm,.fav-row .flag-x,.pick .flag-x{width:22px;height:15px}
+  .predict{text-align:center}
+  .predict .pl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+  .pscore{font-family:var(--serif);font-weight:600;font-size:30px;font-variant-numeric:tabular-nums;display:inline-flex;align-items:baseline;gap:3px;line-height:1}
+  .pscore i{color:var(--muted);font-style:normal;font-size:22px}
+  .obar{height:6px;border-radius:3px;overflow:hidden;display:flex;background:#efece4;margin-bottom:10px}
+  .obar i{height:100%;transition:width .85s cubic-bezier(.22,1,.36,1)}
+  .obar .b-home{background:var(--home)}.obar .b-draw{background:var(--draw)}.obar .b-away{background:var(--away)}
+  .onums{display:flex;justify-content:space-between}
+  .onums>span{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
+  .onums .val{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+  .onums small{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .onums .h .val{color:var(--home)}.onums .d .val{color:#8c8576}.onums .a .val{color:var(--away)}
+  .m-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted)}
+  .conf{display:flex;align-items:center;gap:6px}
+  .conf .dots{display:flex;gap:3px}
+  .conf .dot{width:6px;height:6px;border-radius:50%;background:var(--line-strong)}
+  .conf .dot.on{background:var(--ink-soft)}
+  .noresult{grid-column:1/-1;background:var(--card);padding:40px 24px;text-align:center;color:var(--muted);font-size:14px}
+
+  /* Sections */
+  section.block{margin:40px 0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+  .sec-head h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:0}
+  .sec-head .r{flex:1;height:1px;background:var(--line-strong)}
+  .sec-head .meta{font-size:12px;color:var(--muted)}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:24px}
+  .vintro{margin:0 0 16px;font-size:14px;color:var(--ink-soft);max-width:760px}
+  .vintro b{color:var(--ink);font-weight:600}
+  .bankroll-row{display:flex;align-items:center;gap:8px;margin-bottom:18px;font-size:14px;font-weight:600}
+  .bankroll-row .cur{color:var(--muted)}
+  .bankroll-row input{width:90px;font-family:var(--sans);font-size:14px;font-weight:700;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:4px;padding:7px 10px;outline:none;font-variant-numeric:tabular-nums}
+  .bankroll-row input:focus{border-color:var(--ink)}
+  .vscroll{overflow-x:auto}
+  table.vtab{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.vtab th{text-align:start;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+  table.vtab td{padding:12px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+  table.vtab td.vm{display:flex;align-items:center;gap:7px;font-weight:600;white-space:nowrap}
+  table.vtab tr:last-child td{border-bottom:none}
+  table.vtab .edgec{color:var(--home);font-weight:700}
+  .vwarn{margin:16px 0 0;font-size:11.5px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line);padding-top:14px}
+  .pkpis{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:18px}
+  .pk{flex:1;min-width:96px;background:var(--card);padding:13px 16px}
+  .pk .pn{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .pk .pv{font-family:var(--serif);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:4px}
+  .pos{color:var(--home)}.neg{color:var(--away)}
+  .pstat{font-weight:700;font-variant-numeric:tabular-nums}
+  .pstat.won{color:var(--home)}.pstat.lost{color:var(--away)}.pstat.open{color:var(--muted)}
+  .clv-input{width:78px;font-family:var(--sans);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:4px;padding:5px 7px;outline:none}
+  .clv-input:focus{border-color:var(--ink)}
+  .strat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .strat{background:var(--card);padding:18px;border-top:3px solid var(--ink)}
+  .strat.safe{border-top-color:var(--home)}.strat.normal{border-top-color:var(--ink)}.strat.risk{border-top-color:#c8861d}
+  .strat-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .sname{font-family:var(--serif);font-size:19px;font-weight:600}
+  .sf{font-size:11px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+  .sdesc{font-size:12px;color:var(--muted);margin:0 0 14px;min-height:50px;line-height:1.5}
+  .srow{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .srow:last-child{border-bottom:none}
+  .srow span{color:var(--muted)}
+  .srow b{font-variant-numeric:tabular-nums;font-weight:700}
+  .srow.big{padding:9px 0}.srow.big b{font-size:18px}
+  .sdist{margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--line-strong)}
+  .srow.sd{padding:5px 0;border-bottom:none;font-size:12.5px}
+  .srow.sd span{color:var(--ink-soft)}
+  .srow.sd em{color:var(--muted);font-style:normal;font-size:11px}
+  .srow.sd b{color:var(--ink)}
+  .how{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .how .step{background:var(--card);padding:22px}
+  .how .num{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--accent);line-height:1}
+  .how p{margin:10px 0 0;font-size:14px;color:var(--ink-soft)}
+  .how p b{color:var(--ink);font-weight:600}
+  .fav-row{display:grid;grid-template-columns:160px 1fr 52px;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .fav-row:last-child{border-bottom:none}
+  .fav-row .ft{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px}
+  .fav-bar{height:8px;border-radius:2px;background:#efece4;overflow:hidden}
+  .fav-bar i{display:block;height:100%;background:var(--ink);width:0;transition:width 1s cubic-bezier(.22,1,.36,1)}
+  .fav-row .fv{text-align:end;font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
+  .picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .pick{background:var(--card);padding:14px 16px}
+  .pick .q{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:600}
+  .pick .a{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+  footer{border-top:2px solid var(--ink);margin-top:50px;padding:28px 0 60px;color:var(--muted);font-size:12.5px;line-height:1.65}
+  .note{background:#fbf6ea;border:1px solid #ecdfc2;border-radius:6px;padding:14px 18px;color:#6b5d3c}
+  footer p{margin:14px 0 0}
+</style>
+</head>
+<body>
+
+<div class="ticker">
+  <span class="live-pill"><span class="live-dot"></span> <span data-i18n="live">Live</span></span>
+  <div class="ticker-track"><div class="ticker-move" id="ticker"></div></div>
+</div>
+
+<div class="wrap">
+  <div class="util">
+    <span class="brand">⚽ WC 2026</span>
+    <select class="langsel" id="lang" aria-label="Language"></select>
+  </div>
+
+  <header class="masthead">
+    <div class="kicker" data-i18n="kicker"></div>
+    <h1 data-i18n="h1"></h1>
+    <p class="lede" data-i18n="lede"></p>
+    <div class="strip">
+      <div class="cell"><div class="n" id="kpi-matches">0</div><div class="l" data-i18n="kpiMatches"></div></div>
+      <div class="cell"><div class="n" id="kpi-conf">0%</div><div class="l" data-i18n="kpiConf"></div></div>
+      <div class="cell"><div class="n">48</div><div class="l" data-i18n="kpiTeams"></div></div>
+      <div class="cell"><div class="n" id="kpi-updated">–</div><div class="l" data-i18n="kpiUpdated"></div></div>
+    </div>
+  </header>
+
+  <div class="searchbar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="search" type="text" data-i18n-ph="searchPh" autocomplete="off" />
+    <button class="clear" id="searchClear" aria-label="Clear">×</button>
+  </div>
+
+  <div class="controls">
+    <div class="seg" id="filter">
+      <button class="active" data-f="all" data-i18n="fAll"></button>
+      <button data-f="0" data-i18n="fMd1"></button>
+      <button data-f="1" data-i18n="fMd2"></button>
+      <button data-f="2" data-i18n="fMd3"></button>
+    </div>
+    <button class="btn primary" id="recalc" data-i18n="recalc"></button>
+    <div class="auto-wrap">
+      <span class="feed" id="feedStatus"><span class="fd"></span><span class="ft"></span></span>
+      <span data-i18n="autoRefresh"></span>
+      <div class="switch on" id="autoSwitch"><i></i></div>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="block">
+    <div class="sec-head"><h2 data-i18n="valueTitle"></h2><span class="r"></span><span class="meta" data-i18n="valueMeta"></span></div>
+    <div class="panel">
+      <p class="vintro" data-i18n="valueIntro"></p>
+      <div class="bankroll-row"><label for="bankroll" data-i18n="bankroll"></label><span class="cur">€</span><input id="bankroll" type="number" value="100" min="10" step="10"></div>
+      <div id="valueBox"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><h2 data-i18n="stratTitle"></h2><span class="r"></span><span class="meta" data-i18n="stratMeta"></span></div>
+    <div class="panel">
+      <p class="vintro" data-i18n="stratIntro"></p>
+      <div class="bankroll-row"><label for="stakeBudget" data-i18n="totalStake"></label><span class="cur">€</span><input id="stakeBudget" type="number" value="100" min="1" step="10"></div>
+      <div id="stratBox"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><h2 data-i18n="paperTitle"></h2><span class="r"></span><span class="meta" data-i18n="paperMeta"></span></div>
+    <div class="panel">
+      <p class="vintro" data-i18n="paperIntro"></p>
+      <div class="pkpis" id="paperKpis"></div>
+      <div id="paperBox"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><h2 data-i18n="howTitle"></h2><span class="r"></span></div>
+    <div class="how">
+      <div class="step"><div class="num">1</div><p data-i18n="how1"></p></div>
+      <div class="step"><div class="num">2</div><p data-i18n="how2"></p></div>
+      <div class="step"><div class="num">3</div><p data-i18n="how3"></p></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><h2 data-i18n="favTitle"></h2><span class="r"></span><span class="meta" data-i18n="favMeta"></span></div>
+    <div class="panel" id="favs"></div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><h2 data-i18n="picksTitle"></h2><span class="r"></span><span class="meta" data-i18n="picksMeta"></span></div>
+    <div class="picks" id="picks"></div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="note"><span data-i18n="footNote"></span> <span data-i18n="disclaimer"></span></div>
+    <p data-i18n="footModel"></p>
+  </div>
+</footer>
+
+<script>
+/* ============ i18n ============ */
+const I18N={
+ en:{langName:"English",live:"Live",kicker:"World Cup 2026 · Prediction Analysis",h1:"The Prediction Assistant",lede:"Precise scoreline forecasts using the <b>Poisson model the bookmakers use</b> — calculated live from the odds.",kpiMatches:"Matches analysed",kpiConf:"Avg. favourite confidence",kpiTeams:"Teams · 12 groups",kpiUpdated:"Last updated",searchPh:"Search a match or team … e.g. Brazil, Switzerland, Group C",recalc:"Recalculate",fAll:"All",fMd1:"Matchday 1",fMd2:"Matchday 2",fMd3:"Matchday 3",autoRefresh:"Auto-refresh",group:"Group",tip:"Prediction",home:"Home",draw:"Draw",away:"Away",resultChance:"Result chance",confidence:"Confidence",favTitle:"Title favourites",favMeta:"Market probability",picksTitle:"Tournament picks",picksMeta:"17 bonus questions",pChampion:"World Champion",pTopScorer:"Top scorer (team)",pSemi:"Semi-final",pGroupWinner:"Group {g} winner",noResult:"No matches found.",feedLive:"Live feed connected",feedOff:"Live feed not connected",howTitle:"How it works",how1:"<b>Real odds in.</b> Every prediction starts from the actual bookmaker odds for the match.",how2:"<b>Poisson model.</b> We turn the odds into expected goals and compute the single most likely scoreline — the same maths betting firms use.",how3:"<b>Most useful pick.</b> The shown score maximises your expected points in prediction games like Kicktipp.",footNote:"<b>Note:</b> Predictions are based on bookmaker odds via a Poisson model. When a live data feed is connected, scores and odds update automatically.",footModel:"Model: bivariate Poisson distribution, λ fitted from the 1X2 odds. The most likely single scoreline maximises expected points.",disclaimer:"18+ · Predict responsibly.",valueTitle:"Value bets — model vs market",valueMeta:"Independent Elo model · only +EV shown",valueIntro:"These are the only matches where our <b>independent Elo model</b> (not derived from odds) disagrees with the bookmaker in your favour. Everything else has no edge — the honest move is not to bet it.",bankroll:"Bankroll",noValue:"No value bets on these odds. That's the normal, honest result — skip them.",colMatch:"Match",colBet:"Bet",colOdds:"Odds",colModel:"Model",colMarket:"Market",colEdge:"Edge",colStake:"Stake (¼ Kelly)",valueWarn:"“Edge” = our model rates this outcome higher than the de-margined market price. It is an estimate, not a guarantee — the market is usually right. Stakes use fractional (¼) Kelly. Never bet more than you can afford to lose. 18+.",paperTitle:"Paper-trading ledger",paperMeta:"Fictional money · proof before real stakes",paperIntro:"Every flagged value bet is logged here at its pre-match odds with <b>fictional money</b>. When real results arrive from the live feed, bets settle automatically — so you see the true ROI before risking a cent.",pNone:"No paper bets yet — value bets are logged here automatically once flagged (and the live feed is connected).",pOpen:"Open",pRecord:"Record (W–L)",pStaked:"Staked",pPL:"Net P/L",pROI:"ROI",pColMatch:"Match",pColBet:"Bet",pColOdds:"Odds",pColStake:"Stake",pColResult:"Result",pColPL:"P/L",pReset:"Reset ledger",stratTitle:"Strategy comparison",stratMeta:"Same value bets · three risk levels",stratIntro:"Enter a total stake — it is distributed dynamically across the current value bets by today's odds. Safe loads the likely winners; higher risk loads the long shots for more upside.",totalStake:"Total stake",tierSafe:"Safe",tierSafeD:"More money on the likely winners (high win-rate). Lowest swings.",tierNormal:"Balanced",tierNormalD:"Kelly-proportional split — the balanced default.",tierRisk:"Higher reward",tierRiskD:"Loads the high-odds picks. Biggest upside, biggest swings.",sStaked:"Staked",sBets:"Bets",sMaxWin:"If all win",sExp:"Expected",sROI:"Expected ROI",sAllWin:"All-win chance",stratWarn:"“If all win” is the best case, not the likely case. “Expected” is the honest, probability-weighted figure. Stakes never exceed your bankroll. 18+.",clv:"CLV",colClose:"Closing",pAvgCLV:"Avg CLV",pCLVpos:"CLV+ bets",closePh:"close odds",clvHint:"CLV (Closing Line Value) = your odds vs the no-vig closing price. Positive CLV over ~50 bets is the proven sign of real edge — long before profit shows (Miller & Davidow; Buchdahl). Type the closing odds you saw, or let the live feed fill them.",skillNeed:"{n}/50 CLV bets logged — the literature's rough threshold to start trusting the edge."},
+ es:{langName:"Español",live:"En vivo",kicker:"Mundial 2026 · Análisis de pronósticos",h1:"El Asistente de Pronósticos",lede:"Pronósticos de resultados precisos con el <b>modelo de Poisson que usan las casas de apuestas</b> — calculado en vivo desde las cuotas.",kpiMatches:"Partidos analizados",kpiConf:"Confianza media del favorito",kpiTeams:"Equipos · 12 grupos",kpiUpdated:"Última actualización",searchPh:"Busca un partido o equipo … p. ej. Brasil, Suiza, Grupo C",recalc:"Recalcular",fAll:"Todos",fMd1:"Jornada 1",fMd2:"Jornada 2",fMd3:"Jornada 3",autoRefresh:"Auto-actualizar",group:"Grupo",tip:"Pronóstico",home:"Local",draw:"Empate",away:"Visitante",resultChance:"Probabilidad del resultado",confidence:"Confianza",favTitle:"Favoritos al título",favMeta:"Probabilidad de mercado",picksTitle:"Pronósticos del torneo",picksMeta:"17 preguntas bonus",pChampion:"Campeón del Mundo",pTopScorer:"Goleador (equipo)",pSemi:"Semifinal",pGroupWinner:"Ganador Grupo {g}",noResult:"No se encontraron partidos.",feedLive:"Feed en vivo conectado",feedOff:"Feed en vivo no conectado",howTitle:"Cómo funciona",how1:"<b>Cuotas reales.</b> Cada pronóstico parte de las cuotas reales del partido.",how2:"<b>Modelo de Poisson.</b> Convertimos las cuotas en goles esperados y calculamos el resultado más probable — las mismas matemáticas que las casas de apuestas.",how3:"<b>La opción más útil.</b> El marcador mostrado maximiza tus puntos esperados en juegos como Kicktipp.",footNote:"<b>Nota:</b> Los pronósticos se basan en las cuotas mediante un modelo de Poisson. Al conectar un feed en vivo, resultados y cuotas se actualizan automáticamente.",footModel:"Modelo: distribución de Poisson bivariante, λ ajustada desde las cuotas 1X2. El resultado más probable maximiza los puntos esperados.",disclaimer:"+18 · Pronostica con responsabilidad."},
+ fr:{langName:"Français",live:"En direct",kicker:"Coupe du Monde 2026 · Analyse des pronostics",h1:"L’Assistant de Pronostics",lede:"Pronostics de scores précis avec le <b>modèle de Poisson utilisé par les bookmakers</b> — calculé en direct depuis les cotes.",kpiMatches:"Matchs analysés",kpiConf:"Confiance moyenne du favori",kpiTeams:"Équipes · 12 groupes",kpiUpdated:"Dernière mise à jour",searchPh:"Rechercher un match ou une équipe … ex. Brésil, Suisse, Groupe C",recalc:"Recalculer",fAll:"Tous",fMd1:"Journée 1",fMd2:"Journée 2",fMd3:"Journée 3",autoRefresh:"Actualisation auto",group:"Groupe",tip:"Pronostic",home:"Domicile",draw:"Nul",away:"Extérieur",resultChance:"Probabilité du score",confidence:"Confiance",favTitle:"Favoris au titre",favMeta:"Probabilité du marché",picksTitle:"Pronostics du tournoi",picksMeta:"17 questions bonus",pChampion:"Champion du Monde",pTopScorer:"Meilleur buteur (équipe)",pSemi:"Demi-finale",pGroupWinner:"Vainqueur Groupe {g}",noResult:"Aucun match trouvé.",feedLive:"Flux en direct connecté",feedOff:"Flux en direct non connecté",howTitle:"Comment ça marche",how1:"<b>Cotes réelles.</b> Chaque pronostic part des cotes réelles du match.",how2:"<b>Modèle de Poisson.</b> Nous transformons les cotes en buts attendus et calculons le score le plus probable — les mêmes maths que les bookmakers.",how3:"<b>Le choix le plus utile.</b> Le score affiché maximise vos points attendus dans les jeux comme Kicktipp.",footNote:"<b>Note :</b> Les pronostics reposent sur les cotes via un modèle de Poisson. Lorsqu’un flux en direct est connecté, scores et cotes se mettent à jour automatiquement.",footModel:"Modèle : loi de Poisson bivariée, λ ajustée depuis les cotes 1X2. Le score le plus probable maximise les points attendus.",disclaimer:"18+ · Pronostiquez de manière responsable."},
+ pt:{langName:"Português",live:"Ao vivo",kicker:"Copa do Mundo 2026 · Análise de palpites",h1:"O Assistente de Palpites",lede:"Previsões de placar precisas com o <b>modelo de Poisson que as casas de apostas usam</b> — calculado ao vivo a partir das odds.",kpiMatches:"Jogos analisados",kpiConf:"Confiança média do favorito",kpiTeams:"Seleções · 12 grupos",kpiUpdated:"Última atualização",searchPh:"Buscar um jogo ou seleção … ex. Brasil, Suíça, Grupo C",recalc:"Recalcular",fAll:"Todos",fMd1:"Rodada 1",fMd2:"Rodada 2",fMd3:"Rodada 3",autoRefresh:"Atualização automática",group:"Grupo",tip:"Palpite",home:"Casa",draw:"Empate",away:"Fora",resultChance:"Probabilidade do placar",confidence:"Confiança",favTitle:"Favoritos ao título",favMeta:"Probabilidade de mercado",picksTitle:"Palpites do torneio",picksMeta:"17 perguntas bônus",pChampion:"Campeão Mundial",pTopScorer:"Artilheiro (seleção)",pSemi:"Semifinal",pGroupWinner:"Vencedor Grupo {g}",noResult:"Nenhum jogo encontrado.",feedLive:"Feed ao vivo conectado",feedOff:"Feed ao vivo não conectado",howTitle:"Como funciona",how1:"<b>Odds reais.</b> Cada palpite parte das odds reais do jogo.",how2:"<b>Modelo de Poisson.</b> Convertemos as odds em gols esperados e calculamos o placar mais provável — a mesma matemática das casas de apostas.",how3:"<b>A escolha mais útil.</b> O placar exibido maximiza seus pontos esperados em jogos como o Kicktipp.",footNote:"<b>Nota:</b> Os palpites baseiam-se nas odds via modelo de Poisson. Ao conectar um feed ao vivo, placares e odds se atualizam automaticamente.",footModel:"Modelo: distribuição de Poisson bivariada, λ ajustado pelas odds 1X2. O placar mais provável maximiza os pontos esperados.",disclaimer:"18+ · Aposte com responsabilidade."},
+ de:{langName:"Deutsch",live:"Live",kicker:"Weltmeisterschaft 2026 · Tipp-Analyse",h1:"Der Tipp-Assistent",lede:"Präzise Ergebnis-Prognosen mit dem <b>Poisson-Modell der Wettbüros</b> — live aus den Quoten berechnet.",kpiMatches:"Spiele analysiert",kpiConf:"Ø Favoriten-Sicherheit",kpiTeams:"Teams · 12 Gruppen",kpiUpdated:"Zuletzt aktualisiert",searchPh:"Spiel oder Team suchen … z. B. Brasilien, Schweiz, Gruppe C",recalc:"Neu berechnen",fAll:"Alle",fMd1:"Spieltag 1",fMd2:"Spieltag 2",fMd3:"Spieltag 3",autoRefresh:"Auto-Aktualisierung",group:"Gruppe",tip:"Tipp",home:"Heim",draw:"Remis",away:"Gast",resultChance:"Ergebnis-Chance",confidence:"Sicherheit",favTitle:"Titel-Favoriten",favMeta:"Markt-Wahrscheinlichkeit",picksTitle:"Turnier-Tipps",picksMeta:"17 Bonus-Fragen",pChampion:"Weltmeister",pTopScorer:"Torschützenkönig (Team)",pSemi:"Halbfinale",pGroupWinner:"Sieger Gruppe {g}",noResult:"Keine Spiele gefunden.",feedLive:"Live-Feed verbunden",feedOff:"Live-Feed nicht verbunden",howTitle:"So funktioniert’s",how1:"<b>Echte Quoten rein.</b> Jeder Tipp startet mit den echten Wettquoten des Spiels.",how2:"<b>Poisson-Modell.</b> Wir wandeln die Quoten in erwartete Tore um und berechnen das wahrscheinlichste Ergebnis — dieselbe Mathematik wie die Wettbüros.",how3:"<b>Der nützlichste Tipp.</b> Das gezeigte Ergebnis maximiert deine erwarteten Punkte bei Tippspielen wie Kicktipp.",footNote:"<b>Hinweis:</b> Prognosen basieren auf Wettquoten via Poisson-Modell. Sobald ein Live-Feed verbunden ist, aktualisieren sich Ergebnisse und Quoten automatisch.",footModel:"Modell: bivariate Poisson-Verteilung, λ aus den 1X2-Quoten gefittet. Das wahrscheinlichste Einzel-Ergebnis maximiert die erwarteten Punkte.",disclaimer:"18+ · Tippen mit Verstand.",valueTitle:"Value-Wetten — Modell vs. Markt",valueMeta:"Unabhängiges Elo-Modell · nur +EV",valueIntro:"Das sind die einzigen Spiele, in denen unser <b>unabhängiges Elo-Modell</b> (nicht aus Quoten abgeleitet) zu deinen Gunsten vom Buchmacher abweicht. Bei allen anderen gibt es keinen Vorteil — die ehrliche Entscheidung ist: nicht wetten.",bankroll:"Bankroll",noValue:"Keine Value-Wetten bei diesen Quoten. Das ist das normale, ehrliche Ergebnis — auslassen.",colMatch:"Spiel",colBet:"Wette",colOdds:"Quote",colModel:"Modell",colMarket:"Markt",colEdge:"Vorteil",colStake:"Einsatz (¼ Kelly)",valueWarn:"„Vorteil“ = unser Modell bewertet diesen Ausgang höher als der entmargte Marktpreis. Eine Schätzung, keine Garantie — der Markt hat meist recht. Einsätze nach ¼-Kelly. Wette nie mehr, als du verlieren kannst. 18+.",paperTitle:"Paper-Trading-Konto",paperMeta:"Fiktives Geld · Beweis vor echtem Einsatz",paperIntro:"Jede markierte Value-Wette wird hier mit ihrer Vor-Anpfiff-Quote und <b>fiktivem Geld</b> verbucht. Sobald echte Ergebnisse aus dem Live-Feed kommen, wird automatisch abgerechnet — so siehst du den echten ROI, bevor du einen Cent riskierst.",pNone:"Noch keine Paper-Wetten — Value-Wetten werden hier automatisch verbucht, sobald markiert (und der Live-Feed verbunden ist).",pOpen:"Offen",pRecord:"Bilanz (S–N)",pStaked:"Eingesetzt",pPL:"Netto G/V",pROI:"ROI",pColMatch:"Spiel",pColBet:"Wette",pColOdds:"Quote",pColStake:"Einsatz",pColResult:"Ergebnis",pColPL:"G/V",pReset:"Konto zurücksetzen",stratTitle:"Strategie-Vergleich",stratMeta:"Gleiche Value-Wetten · drei Risikostufen",stratIntro:"Gib einen Gesamteinsatz ein — er wird dynamisch nach den aktuellen Quoten auf die Value-Wetten verteilt. Sicher gewichtet die wahrscheinlichen Sieger; höheres Risiko lädt die Außenseiter für mehr Upside.",totalStake:"Gesamteinsatz",tierSafe:"Sicher",tierSafeD:"Mehr Geld auf die wahrscheinlichen Sieger (hohe Trefferquote). Geringste Schwankung.",tierNormal:"Normal",tierNormalD:"Kelly-proportionale Verteilung — die ausgewogene Standardwahl.",tierRisk:"Höhere Belohnung",tierRiskD:"Lädt die Hoch-Quoten-Picks. Größter Upside, größte Schwankung.",sStaked:"Eingesetzt",sBets:"Wetten",sMaxWin:"Wenn alle gewinnen",sExp:"Erwartet",sROI:"Erwarteter ROI",sAllWin:"Alle-gewinnen-Chance",stratWarn:"„Wenn alle gewinnen“ ist der Bestfall, nicht der wahrscheinliche Fall. „Erwartet“ ist der ehrliche, wahrscheinlichkeitsgewichtete Wert. Einsätze überschreiten nie deine Bankroll. 18+.",clv:"CLV",colClose:"Schluss",pAvgCLV:"Ø CLV",pCLVpos:"CLV+ Wetten",closePh:"Schlussquote",clvHint:"CLV (Closing Line Value) = deine Quote vs. die entmargte Schlussquote. Positiver CLV über ~50 Wetten ist der belegte Beweis für echten Edge — lange bevor Gewinn sichtbar wird (Miller & Davidow; Buchdahl). Tipp die gesehene Schlussquote ein, oder lass sie vom Live-Feed füllen.",skillNeed:"{n}/50 CLV-Wetten erfasst — die grobe Literatur-Schwelle, ab der man dem Edge zu trauen beginnt."},
+ nl:{langName:"Nederlands",live:"Live",kicker:"WK 2026 · Voorspellingsanalyse",h1:"De Voorspellingsassistent",lede:"Nauwkeurige scorevoorspellingen met het <b>Poisson-model dat bookmakers gebruiken</b> — live berekend uit de odds.",kpiMatches:"Wedstrijden geanalyseerd",kpiConf:"Gem. favoriet-zekerheid",kpiTeams:"Teams · 12 groepen",kpiUpdated:"Laatst bijgewerkt",searchPh:"Zoek een wedstrijd of team … bijv. Brazilië, Zwitserland, Groep C",recalc:"Herbereken",fAll:"Alle",fMd1:"Speeldag 1",fMd2:"Speeldag 2",fMd3:"Speeldag 3",autoRefresh:"Auto-verversen",group:"Groep",tip:"Voorspelling",home:"Thuis",draw:"Gelijk",away:"Uit",resultChance:"Kans op uitslag",confidence:"Zekerheid",favTitle:"Titelfavorieten",favMeta:"Marktkans",picksTitle:"Toernooivoorspellingen",picksMeta:"17 bonusvragen",pChampion:"Wereldkampioen",pTopScorer:"Topscorer (team)",pSemi:"Halve finale",pGroupWinner:"Winnaar Groep {g}",noResult:"Geen wedstrijden gevonden.",feedLive:"Live feed verbonden",feedOff:"Live feed niet verbonden",howTitle:"Hoe het werkt",how1:"<b>Echte odds erin.</b> Elke voorspelling begint bij de echte odds van de wedstrijd.",how2:"<b>Poisson-model.</b> We zetten de odds om in verwachte goals en berekenen de meest waarschijnlijke uitslag — dezelfde wiskunde als bookmakers.",how3:"<b>De nuttigste keuze.</b> De getoonde uitslag maximaliseert je verwachte punten in spellen zoals Kicktipp.",footNote:"<b>Let op:</b> Voorspellingen zijn gebaseerd op odds via een Poisson-model. Zodra een live feed is verbonden, werken uitslagen en odds automatisch bij.",footModel:"Model: bivariate Poisson-verdeling, λ gefit uit de 1X2-odds. De meest waarschijnlijke uitslag maximaliseert de verwachte punten.",disclaimer:"18+ · Voorspel verantwoord."},
+ tr:{langName:"Türkçe",live:"Canlı",kicker:"2026 Dünya Kupası · Tahmin Analizi",h1:"Tahmin Asistanı",lede:"<b>Bahis şirketlerinin kullandığı Poisson modeli</b> ile hassas skor tahminleri — oranlardan canlı hesaplanır.",kpiMatches:"Analiz edilen maçlar",kpiConf:"Ort. favori güveni",kpiTeams:"Takımlar · 12 grup",kpiUpdated:"Son güncelleme",searchPh:"Maç veya takım ara … örn. Brezilya, İsviçre, C Grubu",recalc:"Yeniden hesapla",fAll:"Tümü",fMd1:"1. Hafta",fMd2:"2. Hafta",fMd3:"3. Hafta",autoRefresh:"Otomatik yenile",group:"Grup",tip:"Tahmin",home:"Ev",draw:"Beraberlik",away:"Deplasman",resultChance:"Skor olasılığı",confidence:"Güven",favTitle:"Şampiyonluk favorileri",favMeta:"Piyasa olasılığı",picksTitle:"Turnuva tahminleri",picksMeta:"17 bonus soru",pChampion:"Dünya Şampiyonu",pTopScorer:"Gol kralı (takım)",pSemi:"Yarı final",pGroupWinner:"{g} Grubu galibi",noResult:"Maç bulunamadı.",feedLive:"Canlı akış bağlı",feedOff:"Canlı akış bağlı değil",howTitle:"Nasıl çalışır",how1:"<b>Gerçek oranlar.</b> Her tahmin maçın gerçek bahis oranlarıyla başlar.",how2:"<b>Poisson modeli.</b> Oranları beklenen gole çevirip en olası skoru hesaplarız — bahis şirketleriyle aynı matematik.",how3:"<b>En faydalı seçim.</b> Gösterilen skor, Kicktipp gibi oyunlarda beklenen puanını en üst düzeye çıkarır.",footNote:"<b>Not:</b> Tahminler Poisson modeliyle bahis oranlarına dayanır. Canlı veri akışı bağlandığında skorlar ve oranlar otomatik güncellenir.",footModel:"Model: iki değişkenli Poisson dağılımı, λ 1X2 oranlarından uyarlanır. En olası skor beklenen puanı en üst düzeye çıkarır.",disclaimer:"18+ · Sorumlu tahmin yapın."},
+ ar:{langName:"العربية",live:"مباشر",kicker:"كأس العالم 2026 · تحليل التوقعات",h1:"مساعد التوقعات",lede:"توقعات دقيقة للنتائج باستخدام <b>نموذج بواسون الذي تستخدمه شركات المراهنات</b> — يُحسب مباشرة من الاحتمالات.",kpiMatches:"المباريات المُحلَّلة",kpiConf:"متوسط ثقة المرشح",kpiTeams:"المنتخبات · 12 مجموعة",kpiUpdated:"آخر تحديث",searchPh:"ابحث عن مباراة أو منتخب … مثل البرازيل، سويسرا، المجموعة C",recalc:"إعادة الحساب",fAll:"الكل",fMd1:"الجولة 1",fMd2:"الجولة 2",fMd3:"الجولة 3",autoRefresh:"تحديث تلقائي",group:"المجموعة",tip:"التوقع",home:"المضيف",draw:"تعادل",away:"الضيف",resultChance:"احتمال النتيجة",confidence:"الثقة",favTitle:"المرشحون للقب",favMeta:"احتمال السوق",picksTitle:"توقعات البطولة",picksMeta:"17 سؤالًا إضافيًا",pChampion:"بطل العالم",pTopScorer:"الهداف (المنتخب)",pSemi:"نصف النهائي",pGroupWinner:"متصدر المجموعة {g}",noResult:"لا توجد مباريات.",feedLive:"التدفق المباشر متصل",feedOff:"التدفق المباشر غير متصل",howTitle:"كيف يعمل",how1:"<b>احتمالات حقيقية.</b> كل توقع يبدأ من احتمالات المراهنات الحقيقية للمباراة.",how2:"<b>نموذج بواسون.</b> نحوّل الاحتمالات إلى أهداف متوقعة ونحسب النتيجة الأرجح — نفس رياضيات شركات المراهنات.",how3:"<b>الخيار الأكثر فائدة.</b> النتيجة المعروضة تزيد نقاطك المتوقعة في ألعاب مثل Kicktipp.",footNote:"<b>ملاحظة:</b> تعتمد التوقعات على احتمالات المراهنات عبر نموذج بواسون. عند ربط تدفق مباشر، تتحدّث النتائج والاحتمالات تلقائيًا.",footModel:"النموذج: توزيع بواسون ثنائي المتغير، λ مُلائَم من احتمالات 1X2. النتيجة الأرجح تزيد النقاط المتوقعة.",disclaimer:"+18 · توقّع بمسؤولية."},
+ ja:{langName:"日本語",live:"ライブ",kicker:"2026 ワールドカップ · 予想分析",h1:"予想アシスタント",lede:"<b>ブックメーカーが使うポアソンモデル</b>で精密なスコア予想 — オッズからライブで計算。",kpiMatches:"分析した試合",kpiConf:"平均 本命の信頼度",kpiTeams:"チーム · 12グループ",kpiUpdated:"最終更新",searchPh:"試合やチームを検索 … 例: ブラジル、スイス、グループC",recalc:"再計算",fAll:"すべて",fMd1:"第1節",fMd2:"第2節",fMd3:"第3節",autoRefresh:"自動更新",group:"グループ",tip:"予想",home:"ホーム",draw:"引分",away:"アウェイ",resultChance:"スコア的中率",confidence:"信頼度",favTitle:"優勝候補",favMeta:"市場確率",picksTitle:"トーナメント予想",picksMeta:"17 ボーナス設問",pChampion:"優勝",pTopScorer:"得点王（チーム）",pSemi:"準決勝",pGroupWinner:"グループ{g} 首位",noResult:"試合が見つかりません。",feedLive:"ライブ接続中",feedOff:"ライブ未接続",howTitle:"仕組み",how1:"<b>実際のオッズ。</b> すべての予想は試合の実際のオッズから始まります。",how2:"<b>ポアソンモデル。</b> オッズを期待ゴールに変換し、最も可能性の高いスコアを算出 — ブックメーカーと同じ数学です。",how3:"<b>最も役立つ予想。</b> 表示スコアはKicktippのようなゲームで期待ポイントを最大化します。",footNote:"<b>注:</b> 予想はポアソンモデルでオッズに基づきます。ライブ接続時にスコアとオッズが自動更新されます。",footModel:"モデル: 二変量ポアソン分布、λは1X2オッズから推定。最も可能性の高いスコアが期待ポイントを最大化します。",disclaimer:"18歳以上 · 責任ある予想を。"},
+ ko:{langName:"한국어",live:"라이브",kicker:"2026 월드컵 · 예측 분석",h1:"예측 어시스턴트",lede:"<b>북메이커가 쓰는 푸아송 모델</b>로 정밀한 스코어 예측 — 배당에서 실시간 계산.",kpiMatches:"분석한 경기",kpiConf:"평균 우승후보 신뢰도",kpiTeams:"팀 · 12개 조",kpiUpdated:"마지막 업데이트",searchPh:"경기나 팀 검색 … 예: 브라질, 스위스, C조",recalc:"다시 계산",fAll:"전체",fMd1:"1차전",fMd2:"2차전",fMd3:"3차전",autoRefresh:"자동 새로고침",group:"조",tip:"예측",home:"홈",draw:"무",away:"원정",resultChance:"스코어 적중 확률",confidence:"신뢰도",favTitle:"우승 후보",favMeta:"시장 확률",picksTitle:"토너먼트 예측",picksMeta:"17개 보너스 문항",pChampion:"월드컵 우승",pTopScorer:"득점왕 (팀)",pSemi:"준결승",pGroupWinner:"{g}조 1위",noResult:"경기를 찾을 수 없습니다.",feedLive:"라이브 연결됨",feedOff:"라이브 미연결",howTitle:"작동 방식",how1:"<b>실제 배당.</b> 모든 예측은 경기의 실제 배당에서 시작합니다.",how2:"<b>푸아송 모델.</b> 배당을 기대 득점으로 바꿔 가장 가능성 높은 스코어를 계산 — 북메이커와 같은 수학입니다.",how3:"<b>가장 유용한 예측.</b> 표시된 스코어는 Kicktipp 같은 게임에서 기대 점수를 극대화합니다.",footNote:"<b>참고:</b> 예측은 푸아송 모델로 배당에 기반합니다. 라이브 피드가 연결되면 스코어와 배당이 자동 업데이트됩니다.",footModel:"모델: 이변량 푸아송 분포, 1X2 배당에서 λ 추정. 가장 가능성 높은 스코어가 기대 점수를 극대화합니다.",disclaimer:"18세 이상 · 책임감 있는 예측."}
+};
+let lang=localStorage.getItem("wc_lang")||"en"; if(!I18N[lang])lang="en";
+function t(k){return (I18N[lang]&&I18N[lang][k])||I18N.en[k]||k;}
+
+/* ============ DATA (English team names) ============ */
+// ISO codes for flagcdn.com flag images
+const FLAGS={"Mexico":"mx","South Africa":"za","South Korea":"kr","Czechia":"cz","Canada":"ca","Bosnia-Herz.":"ba","USA":"us","Paraguay":"py","Qatar":"qa","Switzerland":"ch","Brazil":"br","Morocco":"ma","Haiti":"ht","Scotland":"gb-sct","Australia":"au","Turkey":"tr","Germany":"de","Curaçao":"cw","Netherlands":"nl","Japan":"jp","Ivory Coast":"ci","Ecuador":"ec","Sweden":"se","Tunisia":"tn","Spain":"es","Cape Verde":"cv","Belgium":"be","Egypt":"eg","Saudi Arabia":"sa","Uruguay":"uy","Iran":"ir","New Zealand":"nz","France":"fr","Senegal":"sn","Iraq":"iq","Norway":"no","Argentina":"ar","Algeria":"dz","Austria":"at","Jordan":"jo","Portugal":"pt","DR Congo":"cd","England":"gb-eng","Croatia":"hr","Ghana":"gh","Panama":"pa","Uzbekistan":"uz","Colombia":"co"};
+function flag(team,sm){const c=FLAGS[team];if(!c)return'<span class="flag-x"></span>';
+ return `<img class="flag${sm?' sm':''}" src="https://flagcdn.com/${c}.svg" loading="lazy" alt="${team}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'flag-x'}))">`;}
+const TEAMCOLORS={"Mexico":"#137a3e","South Korea":"#2f5bd0","Canada":"#b3122b","USA":"#2a4ea2","Brazil":"#caa400","Turkey":"#cc1016","Germany":"#111","Netherlands":"#d8741b","Ecuador":"#caa400","Sweden":"#1f6fd6","Spain":"#b3122b","Belgium":"#b89400","Uruguay":"#2f86c2","Iran":"#1f7e44","France":"#2a3f9e","Norway":"#1f4bd0","Argentina":"#4f97d6","Austria":"#c43030","Portugal":"#9a1b2e","England":"#2a4ea2","Switzerland":"#bf2018","Colombia":"#caa400","Scotland":"#2a5fb0"};
+function teamColor(h,a,pH,pA){return TEAMCOLORS[pH>=pA?h:a]||"#1a1916";}
+
+/* ===== INDEPENDENT MODEL: Elo ratings (eloratings.net scale, Jun 2026) =====
+   Source: World Football Elo Ratings. NOT derived from betting odds → real edge candidate. */
+const ELO={"Spain":2165,"Argentina":2113,"France":2081,"England":2020,"Brazil":1988,"Portugal":1984,"Colombia":1977,"Netherlands":1961,"Ecuador":1935,"Croatia":1930,"Germany":1925,"Norway":1917,"Turkey":1906,"Japan":1906,"Switzerland":1894,"Uruguay":1892,"Mexico":1868,"Belgium":1866,"Senegal":1866,"Paraguay":1833,"Austria":1830,"Morocco":1822,"Canada":1793,"Australia":1775,"Scotland":1770,"South Korea":1756,"Iran":1764,"Algeria":1743,"USA":1733,"Czechia":1733,"Panama":1733,"Uzbekistan":1718,"Sweden":1714,"Egypt":1699,"Jordan":1685,"Ivory Coast":1676,"DR Congo":1655,"Tunisia":1633,"Iraq":1608,"Bosnia-Herz.":1591,"New Zealand":1585,"Cape Verde":1576,"Saudi Arabia":1566,"Haiti":1532,"South Africa":1517,"Ghana":1503,"Curaçao":1433,"Qatar":1423};
+const HOSTS=new Set(["Mexico","USA","Canada"]);
+const HFA=65, SUPREMACY_DIV=250, BASE_TOTAL=2.65; // softened goal calibration
+const BLEND_W=0.30;      // weight on our model vs the (efficient) market — conservative, pending backtest
+const EDGE_MIN=0.04;     // only flag value when our estimate beats the market by >=4 pts
+const MIN_PROB=0.20;     // skip unreliable long shots: never bet a team our model gives <20% to win
+function modelProbs(home,away){
+ const dr=(ELO[home]??1600)-(ELO[away]??1600)+(HOSTS.has(home)?HFA:0);
+ const sup=dr/SUPREMACY_DIV;
+ const lh=Math.max(0.15,(BASE_TOTAL+sup)/2), la=Math.max(0.15,(BASE_TOTAL-sup)/2);
+ let H=0,D=0,A=0;
+ for(let i=0;i<=8;i++){const pi=poisson(i,lh);for(let j=0;j<=8;j++){const p=pi*poisson(j,la);if(i>j)H+=p;else if(i===j)D+=p;else A+=p;}}
+ const s=H+D+A;return{pH:H/s,pD:D/s,pA:A/s,ts:topScore(lh,la)};
+}
+let BANKROLL=100;
+/* Blend the raw Elo model toward the de-margined market (shrinkage),
+   because the market is a strong, efficient prior. Our final estimate is
+   only a gentle adjustment of the market — that's what value betting really is. */
+function blendedProbs(home,away,mk){
+ const m=modelProbs(home,away);
+ let bH=BLEND_W*m.pH+(1-BLEND_W)*mk[0],bD=BLEND_W*m.pD+(1-BLEND_W)*mk[1],bA=BLEND_W*m.pA+(1-BLEND_W)*mk[2];
+ const s=bH+bD+bA;return[bH/s,bD/s,bA/s];
+}
+function valueBets(){const rows=[];
+ MATCHDAYS.forEach(md=>md.games.forEach(g=>{
+  const[home,away,grp,date,oH,oD,oA]=g;const mk=impliedProbs(oH,oD,oA);const b=blendedProbs(home,away,mk);
+  const outs=[{side:"home",lbl:home,p:b[0],pm:mk[0],odd:oH},{side:"draw",lbl:t('draw'),p:b[1],pm:mk[1],odd:oD},{side:"away",lbl:away,p:b[2],pm:mk[2],odd:oA}];
+  outs.forEach(o=>{o.ev=o.p*o.odd-1;o.edge=o.p-o.pm;o.kelly=(o.p*o.odd-1)/(o.odd-1);});
+  const best=outs.filter(o=>o.ev>0&&o.edge>=EDGE_MIN&&o.p>=MIN_PROB).sort((a,b)=>b.ev-a.ev)[0];
+  if(best)rows.push({home,away,...best});}));
+ return rows.sort((a,b)=>b.edge-a.edge);
+}
+function renderValue(){const box=document.getElementById("valueBox");const rows=valueBets();
+ if(!rows.length){box.innerHTML=`<div class="noresult">${t('noValue')}</div>`;return;}
+ box.innerHTML=`<div class="vscroll"><table class="vtab"><thead><tr><th>${t('colMatch')}</th><th>${t('colBet')}</th><th>${t('colOdds')}</th><th>${t('colModel')}</th><th>${t('colMarket')}</th><th>${t('colEdge')}</th><th>${t('colStake')}</th></tr></thead><tbody>`+
+  rows.map(r=>{const stake=BANKROLL*0.25*Math.max(0,r.kelly);
+   return `<tr><td class="vm">${flag(r.home,1)} ${r.home} – ${r.away} ${flag(r.away,1)}</td><td><b>${r.lbl}</b></td><td>${r.odd.toFixed(2)}</td><td>${(r.p*100).toFixed(0)}%</td><td>${(r.pm*100).toFixed(0)}%</td><td class="edgec">+${(r.edge*100).toFixed(1)}%</td><td><b>€${stake.toFixed(2)}</b></td></tr>`;}).join("")+
+  `</tbody></table></div><p class="vwarn">${t('valueWarn')}</p>`;
+}
+
+/* ===== STRATEGY COMPARISON: enter a total stake, distributed dynamically across value bets ===== */
+let STAKE_BUDGET=100;
+function renderStrategies(){
+ const box=document.getElementById("stratBox");const V=valueBets();const B=STAKE_BUDGET;
+ if(!V.length){box.innerHTML=`<div class="noresult">${t('noValue')}</div>`;return;}
+ // weighting per risk level: safe favours high win-prob, risk favours high odds (upside)
+ const tiers=[{k:"safe",name:t('tierSafe'),desc:t('tierSafeD'),w:b=>b.p*b.p},
+              {k:"normal",name:t('tierNormal'),desc:t('tierNormalD'),w:b=>Math.max(1e-4,b.kelly)},
+              {k:"risk",name:t('tierRisk'),desc:t('tierRiskD'),w:b=>b.p*(b.odd-1)}];
+ box.innerHTML=`<div class="strat-grid">`+tiers.map(ti=>{
+   const ws=V.map(ti.w),sw=ws.reduce((a,b)=>a+b,0)||1,stakes=ws.map(w=>B*w/sw);
+   let maxP=0,expP=0,allW=1;
+   V.forEach((b,i)=>{maxP+=stakes[i]*(b.odd-1);expP+=stakes[i]*(b.p*b.odd-1);allW*=b.p;});
+   const roi=B>0?expP/B*100:0;
+   const dist=V.map((b,i)=>`<div class="srow sd"><span>${b.lbl} <em>@${b.odd.toFixed(2)}</em></span><b>€${stakes[i].toFixed(2)}</b></div>`).join("");
+   return `<div class="strat ${ti.k}">
+     <div class="strat-h"><span class="sname">${ti.name}</span></div>
+     <p class="sdesc">${ti.desc}</p>
+     <div class="sdist">${dist}</div>
+     <div class="srow big"><span>${t('sMaxWin')}</span><b class="pos">+€${maxP.toFixed(2)}</b></div>
+     <div class="srow"><span>${t('sExp')}</span><b class="${expP>=0?'pos':'neg'}">${expP>=0?'+':''}€${expP.toFixed(2)}</b></div>
+     <div class="srow"><span>${t('sROI')}</span><b class="${roi>=0?'pos':'neg'}">${roi>=0?'+':''}${roi.toFixed(1)}%</b></div>
+     <div class="srow"><span>${t('sAllWin')}</span><b>${(allW*100).toFixed(allW<0.1?1:0)}%</b></div>
+   </div>`;}).join("")+`</div><p class="vwarn">${t('stratWarn')}</p>`;
+}
+
+/* ===== PAPER-TRADING LEDGER (fictional money, settles on real results) ===== */
+const PKEY="wc_paper_v1";
+function loadLedger(){try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return{};}}
+function saveLedger(l){try{localStorage.setItem(PKEY,JSON.stringify(l));}catch(e){}}
+function actualSide(rH,rA){return rH>rA?"home":rH<rA?"away":"draw";}
+// no-vig fair closing odds for the backed outcome (CLV benchmark = de-margined close)
+function fairCloseOdds(co,side){const inv=1/co.coH+1/co.coD+1/co.coA;
+ const raw=side==="home"?co.coH:side==="draw"?co.coD:co.coA;return raw*inv;} // 1/((1/raw)/inv)
+
+function syncLedger(){
+ const l=loadLedger();
+ valueBets().forEach(r=>{const key=r.home+"|"+r.away;
+  if(!l[key]){const f=FEED[key];const started=f&&f.status!=="SCHEDULED"&&f.status!=="TIMED";
+   if(!started){l[key]={home:r.home,away:r.away,side:r.side,lbl:r.lbl,odd:r.odd,stake:+(BANKROLL*0.25*Math.max(0,r.kelly)).toFixed(2),status:"open"};}}});
+ Object.values(l).forEach(b=>{if(b.status==="open"){const f=FEED[b.home+"|"+b.away];
+  if(f&&f.status==="FINISHED"&&f.scoreH!=null&&f.scoreA!=null){
+   b.status=b.side===actualSide(f.scoreH,f.scoreA)?"won":"lost";b.resH=f.scoreH;b.resA=f.scoreA;}}});
+ // auto-fill CLV closing odds from the feed (de-vigged) if available and not manually set
+ Object.values(l).forEach(b=>{if(b.clvCloseOdds==null){const f=FEED[b.home+"|"+b.away];
+  if(f&&f.coH>0&&f.coD>0&&f.coA>0){b.clvCloseOdds=+fairCloseOdds(f,b.side).toFixed(3);b.clvAuto=true;}}});
+ saveLedger(l);return l;
+}
+function clvOf(b){return b.clvCloseOdds>0?(b.odd/b.clvCloseOdds-1)*100:null;}
+function renderPaper(){
+ const l=syncLedger();const box=document.getElementById("paperBox");const kp=document.getElementById("paperKpis");
+ const bets=Object.values(l);
+ if(!bets.length){box.innerHTML=`<div class="noresult">${t('pNone')}</div>`;kp.innerHTML="";return;}
+ const settled=bets.filter(b=>b.status!=="open");
+ const won=settled.filter(b=>b.status==="won").length,lost=settled.filter(b=>b.status==="lost").length;
+ const staked=settled.reduce((a,b)=>a+b.stake,0),returned=settled.reduce((a,b)=>a+(b.status==="won"?b.stake*b.odd:0),0);
+ const pl=returned-staked,roi=staked?pl/staked*100:0;
+ const clvB=bets.filter(b=>b.clvCloseOdds>0),clvV=clvB.map(clvOf);
+ const avgCLV=clvV.length?clvV.reduce((a,b)=>a+b,0)/clvV.length:null,clvPos=clvV.filter(v=>v>0).length;
+ const cls=v=>v>=0?"pos":"neg";
+ kp.innerHTML=`<div class="pk"><div class="pn">${t('pOpen')}</div><div class="pv">${bets.length-settled.length}</div></div>
+  <div class="pk"><div class="pn">${t('pRecord')}</div><div class="pv">${won}–${lost}</div></div>
+  <div class="pk"><div class="pn">${t('pPL')}</div><div class="pv ${cls(pl)}">${pl>=0?'+':''}€${pl.toFixed(2)}</div></div>
+  <div class="pk"><div class="pn">${t('pROI')}</div><div class="pv ${cls(roi)}">${settled.length?(roi>=0?'+':'')+roi.toFixed(1)+'%':'—'}</div></div>
+  <div class="pk"><div class="pn">${t('pAvgCLV')}</div><div class="pv ${avgCLV==null?'':cls(avgCLV)}">${avgCLV==null?'—':(avgCLV>=0?'+':'')+avgCLV.toFixed(1)+'%'}</div></div>
+  <div class="pk"><div class="pn">${t('pCLVpos')}</div><div class="pv">${clvB.length?clvPos+'/'+clvB.length:'—'}</div></div>`;
+ const hint=`<p class="vintro" style="margin-bottom:14px">${t('clvHint')}</p>`;
+ const skill=clvB.length?`<p class="vwarn">${t('skillNeed').replace('{n}',clvB.length)}</p>`:"";
+ box.innerHTML=hint+`<div class="vscroll"><table class="vtab"><thead><tr><th>${t('pColMatch')}</th><th>${t('pColBet')}</th><th>${t('pColOdds')}</th><th>${t('colClose')}</th><th>${t('clv')}</th><th>${t('pColStake')}</th><th>${t('pColResult')}</th><th>${t('pColPL')}</th></tr></thead><tbody>`+
+  bets.map(b=>{const fin=b.status!=="open";const p=b.status==="won"?b.stake*(b.odd-1):b.status==="lost"?-b.stake:0;
+   const key=b.home+"|"+b.away;const clv=clvOf(b);
+   const closeCell=b.clvCloseOdds>0?`${b.clvCloseOdds.toFixed(2)}`:`<input class="clv-input" data-key="${key}" type="number" step="0.01" min="1" placeholder="${t('closePh')}">`;
+   const clvCell=clv==null?'—':`<span class="${clv>=0?'pos':'neg'}">${clv>=0?'+':''}${clv.toFixed(1)}%</span>`;
+   return `<tr><td class="vm">${flag(b.home,1)} ${b.home} – ${b.away} ${flag(b.away,1)}</td><td><b>${b.lbl}</b></td><td>${b.odd.toFixed(2)}</td><td>${closeCell}</td><td>${clvCell}</td><td>€${b.stake.toFixed(2)}</td><td><span class="pstat ${b.status}">${fin?b.resH+'–'+b.resA:'·'}</span></td><td class="${p>0?'pos':p<0?'neg':''}">${fin?(p>=0?'+':'')+'€'+p.toFixed(2):'—'}</td></tr>`;}).join("")+
+  `</tbody></table></div>`+skill+`<button class="btn" id="paperReset" style="margin-top:14px">${t('pReset')}</button>`;
+ box.querySelectorAll(".clv-input").forEach(inp=>inp.addEventListener("change",e=>{const v=+e.target.value;
+  if(v>1){const lg=loadLedger(),k=e.target.dataset.key;if(lg[k]){lg[k].clvCloseOdds=v;lg[k].clvAuto=false;saveLedger(lg);renderPaper();}}}));
+ const rb=document.getElementById("paperReset");if(rb)rb.addEventListener("click",()=>{saveLedger({});renderPaper();});
+}
+
+const MATCHDAYS=[
+ {label:["Matchday 1","Jornada 1","Journée 1","Rodada 1","Spieltag 1","Speeldag 1","1. Hafta","الجولة 1","第1節","1차전"],games:[
+  ["Mexico","South Africa","A","11 Jun · 21:00",1.44,4.33,7.50],
+  ["South Korea","Czechia","A","12 Jun · 04:00",2.65,3.10,2.75],
+  ["Canada","Bosnia-Herz.","B","12 Jun · 21:00",1.82,3.50,4.50],
+  ["USA","Paraguay","D","13 Jun · 03:00",1.98,3.30,3.90],
+  ["Qatar","Switzerland","B","13 Jun · 21:00",12.5,6.25,1.24],
+  ["Brazil","Morocco","C","14 Jun · 00:00",1.65,3.80,5.25],
+  ["Haiti","Scotland","C","14 Jun · 03:00",6.25,4.33,1.50],
+  ["Australia","Turkey","D","14 Jun · 06:00",4.50,3.60,1.80]]},
+ {label:["Matchday 2","Jornada 2","Journée 2","Rodada 2","Spieltag 2","Speeldag 2","2. Hafta","الجولة 2","第2節","2차전"],games:[
+  ["Germany","Curaçao","E","14 Jun · 19:00",1.05,16.5,51.0],
+  ["Netherlands","Japan","F","14 Jun · 22:00",2.00,3.60,3.60],
+  ["Ivory Coast","Ecuador","E","15 Jun · 01:00",3.60,2.90,2.30],
+  ["Sweden","Tunisia","F","15 Jun · 04:00",1.95,3.30,4.10],
+  ["Spain","Cape Verde","H","15 Jun · 18:00",1.11,10.0,26.0],
+  ["Belgium","Egypt","G","15 Jun · 21:00",1.66,3.90,5.00],
+  ["Saudi Arabia","Uruguay","H","16 Jun · 00:00",7.00,4.20,1.47],
+  ["Iran","New Zealand","G","16 Jun · 03:00",1.90,3.40,4.20]]},
+ {label:["Matchday 3","Jornada 3","Journée 3","Rodada 3","Spieltag 3","Speeldag 3","3. Hafta","الجولة 3","第3節","3차전"],games:[
+  ["France","Senegal","I","16 Jun · 21:00",1.47,4.40,7.00],
+  ["Iraq","Norway","I","17 Jun · 00:00",12.5,7.00,1.22],
+  ["Argentina","Algeria","J","17 Jun · 03:00",1.41,4.50,8.00],
+  ["Austria","Jordan","J","17 Jun · 06:00",1.33,5.25,9.00],
+  ["Portugal","DR Congo","K","17 Jun · 19:00",1.27,6.00,10.5],
+  ["England","Croatia","L","17 Jun · 22:00",1.73,3.70,4.80],
+  ["Ghana","Panama","L","18 Jun · 01:00",2.05,3.30,3.70],
+  ["Uzbekistan","Colombia","K","18 Jun · 04:00",7.75,4.60,1.42]]}
+];
+const NEWS=[
+ ["Form","Mexico thrash Serbia <b>5–1</b> in final warm-up before the opener"],
+ ["Form","Morocco draw <b>1–1</b> with Norway — 2022 semi-finalists in shape"],
+ ["Injury","Brazil: <b>Neymar's</b> calf injury a doubt before facing Morocco"],
+ ["Test","Switzerland held <b>1–1</b> by Australia in their last friendly"],
+ ["Test","Turkey beat Venezuela <b>2–1</b>"],
+ ["Market","Spain title favourites ahead of France and England"],
+ ["Stat","Haiti given the lowest last-32 chance of all 48 teams"],
+ ["Toss-up","South Korea vs Czechia rated a coin-flip (35/30/34)"],
+ ["Fact","Norway with <b>Haaland</b> clear favourites over Iraq"]
+];
+
+/* ============ POISSON ============ */
+function poisson(k,l){let p=Math.exp(-l);for(let i=1;i<=k;i++)p*=l/i;return p;}
+function impliedProbs(oH,oD,oA){let h=1/oH,d=1/oD,a=1/oA,s=h+d+a;return[h/s,d/s,a/s];}
+function fitLambdas(pH,pD,pA){let best=[1.3,1.0],err=1e9;
+ for(let lh=0.20;lh<=3.2;lh+=0.05)for(let la=0.15;la<=3.0;la+=0.05){let H=0,D=0,A=0;
+  for(let i=0;i<=8;i++){const pi=poisson(i,lh);for(let j=0;j<=8;j++){const p=pi*poisson(j,la);if(i>j)H+=p;else if(i===j)D+=p;else A+=p;}}
+  const e=(H-pH)**2+(D-pD)**2+(A-pA)**2;if(e<err){err=e;best=[lh,la];}}return best;}
+function topScore(lh,la){let b=[1,0],bp=0;for(let i=0;i<=7;i++){const pi=poisson(i,lh);for(let j=0;j<=7;j++){const p=pi*poisson(j,la);if(p>bp){bp=p;b=[i,j];}}}return{h:b[0],a:b[1],p:bp};}
+
+/* ============ STATE ============ */
+const state=[];
+function buildState(){state.length=0;MATCHDAYS.forEach((md,mi)=>md.games.forEach(g=>{
+ const[home,away,grp,date,oH,oD,oA]=g;const[pH,pD,pA]=impliedProbs(oH,oD,oA);const[lh,la]=fitLambdas(pH,pD,pA);
+ state.push({mi,home,away,grp,date,pH,pD,pA,ts:topScore(lh,la)});}));}
+function confDots(s){const m=Math.max(s.pH,s.pD,s.pA);return m>=.68?4:m>=.55?3:m>=.42?2:1;}
+function nowTime(){return new Date().toLocaleTimeString(lang==="en"?"en-GB":lang,{hour:"2-digit",minute:"2-digit"});}
+function animateNum(el,to){const v0=parseFloat(el.dataset.v||"0"),val=el.querySelector(".val")||el,t0=performance.now();
+ (function s(t){const k=Math.min(1,(t-t0)/600),e=1-Math.pow(1-k,3),v=v0+(to-v0)*e;val.textContent=Math.round(v)+"%";if(k<1)requestAnimationFrame(s);else el.dataset.v=to;})(performance.now());}
+
+/* ============ RENDER ============ */
+let currentFilter="all",searchQuery="";
+function matchesSearch(s){if(!searchQuery)return true;const q=searchQuery.toLowerCase();
+ return s.home.toLowerCase().includes(q)||s.away.toLowerCase().includes(q)||("group "+s.grp).toLowerCase().includes(q)||s.grp.toLowerCase()===q;}
+function visibleInDay(mi){return state.filter(s=>s.mi===mi&&matchesSearch(s));}
+function render(){
+ const grid=document.getElementById("grid");grid.innerHTML="";let conf=[],shown=0;
+ MATCHDAYS.forEach((md,mi)=>{
+  if(currentFilter!=="all"&&(+currentFilter)!==mi)return;
+  const list=visibleInDay(mi);if(!list.length)return;
+  const idx=["en","es","fr","pt","de","nl","tr","ar","ja","ko"].indexOf(lang);
+  const h=document.createElement("div");h.className="md-head";
+  h.innerHTML=`<span class="t">${md.label[idx<0?0:idx]}</span><span class="r"></span>`;grid.appendChild(h);
+  list.forEach(s=>{
+   shown++;conf.push(Math.max(s.pH,s.pD,s.pA));const dots=confDots(s);
+   const c=document.createElement("div");c.className="card";c.style.setProperty("--tc",teamColor(s.home,s.away,s.pH,s.pA));
+   c.innerHTML=`
+    <span class="toprule"></span>
+    <div class="m-top"><span class="grp">${t('group')} ${s.grp}</span>${liveBadge(s)||`<time>${s.date}</time>`}</div>
+    <div class="fixture">
+      <div class="side">${flag(s.home)}<span class="tname">${s.home}</span></div>
+      <div class="predict"><span class="pl">${t('tip')}</span><span class="pscore"><span class="sh">${s.ts.h}</span><i>:</i><span class="sa">${s.ts.a}</span></span></div>
+      <div class="side">${flag(s.away)}<span class="tname">${s.away}</span></div>
+    </div>
+    <div class="obar"><i class="b-home" style="width:${(s.pH*100).toFixed(1)}%"></i><i class="b-draw" style="width:${(s.pD*100).toFixed(1)}%"></i><i class="b-away" style="width:${(s.pA*100).toFixed(1)}%"></i></div>
+    <div class="onums">
+      <span class="h"><span class="num nH" data-v="0"><b class="val">0%</b></span><small>${t('home')}</small></span>
+      <span class="d"><span class="num nD" data-v="0"><b class="val">0%</b></span><small>${t('draw')}</small></span>
+      <span class="a"><span class="num nA" data-v="0"><b class="val">0%</b></span><small>${t('away')}</small></span>
+    </div>
+    <div class="m-foot"><span>${t('resultChance')} ~${(s.ts.p*100).toFixed(0)}%</span>
+      <span class="conf">${t('confidence')} <span class="dots">${[1,2,3,4].map(d=>`<span class="dot ${d<=dots?'on':''}"></span>`).join("")}</span></span></div>`;
+   grid.appendChild(c);
+   requestAnimationFrame(()=>{animateNum(c.querySelector(".nH"),s.pH*100);animateNum(c.querySelector(".nD"),s.pD*100);animateNum(c.querySelector(".nA"),s.pA*100);});
+  });
+ });
+ if(!shown){const n=document.createElement("div");n.className="noresult";n.textContent=t('noResult');grid.appendChild(n);}
+ document.getElementById("kpi-matches").textContent=shown;
+ document.getElementById("kpi-conf").textContent=(conf.length?Math.round(conf.reduce((a,b)=>a+b,0)/conf.length*100):0)+"%";
+}
+
+/* ============ FAVS / PICKS / TICKER ============ */
+const FAVS=[["Spain",16.2],["France",16.2],["England",11.0],["Brazil",10.5],["Argentina",9.5],["Germany",7.0],["Portugal",5.5],["Netherlands",5.0]];
+function renderFavs(){const box=document.getElementById("favs");box.innerHTML="";const max=Math.max(...FAVS.map(f=>f[1]));
+ FAVS.forEach(([tm,v])=>{const r=document.createElement("div");r.className="fav-row";
+  r.innerHTML=`<div class="ft">${flag(tm,1)} ${tm}</div><div class="fav-bar"><i></i></div><div class="fv">${v}%</div>`;
+  box.appendChild(r);requestAnimationFrame(()=>r.querySelector("i").style.width=(v/max*100)+"%");});}
+const PICKS=[{ty:"champ",tm:"Spain"},{ty:"top",tm:"France"},{ty:"semi",tm:"Spain"},{ty:"semi",tm:"France"},{ty:"semi",tm:"England"},{ty:"semi",tm:"Brazil"},
+ {ty:"grp",g:"A",tm:"Mexico"},{ty:"grp",g:"B",tm:"Switzerland"},{ty:"grp",g:"C",tm:"Brazil"},{ty:"grp",g:"D",tm:"USA"},
+ {ty:"grp",g:"E",tm:"Germany"},{ty:"grp",g:"F",tm:"Netherlands"},{ty:"grp",g:"G",tm:"Belgium"},{ty:"grp",g:"H",tm:"Spain"},
+ {ty:"grp",g:"I",tm:"France"},{ty:"grp",g:"J",tm:"Argentina"},{ty:"grp",g:"K",tm:"Portugal"},{ty:"grp",g:"L",tm:"England"}];
+function pickLabel(p){return p.ty==="champ"?t('pChampion'):p.ty==="top"?t('pTopScorer'):p.ty==="semi"?t('pSemi'):t('pGroupWinner').replace("{g}",p.g);}
+function renderPicks(){const box=document.getElementById("picks");box.innerHTML="";
+ PICKS.forEach(p=>{const el=document.createElement("div");el.className="pick";
+  el.innerHTML=`<div class="q">${pickLabel(p)}</div><div class="a">${flag(p.tm,1)} ${p.tm}</div>`;box.appendChild(el);});}
+function renderTicker(){document.getElementById("ticker").innerHTML=NEWS.concat(NEWS).map(([tag,txt])=>`<span class="ticker-item"><span class="tag">${tag}</span> ${txt}</span>`).join("");}
+
+/* ============ LIVE DATA (real fetch, graceful fallback) ============ */
+/* Set this to your deployed Cloudflare Worker URL to go live, e.g. "https://wm-2026-feed.<you>.workers.dev"
+   Leave as "wm-data.json" to read a local file. */
+const DATA_URL=(window.WM_FEED_URL)||"wm-data.json";
+let feedConnected=false, FEED={};
+function updateFeedStatus(){const el=document.getElementById("feedStatus");el.classList.toggle("live",feedConnected);
+ el.querySelector(".ft").textContent=feedConnected?t('feedLive'):t('feedOff');}
+async function tryFetchData(){
+ try{const r=await fetch(DATA_URL,{cache:"no-store"});if(!r.ok)throw 0;const j=await r.json();
+  FEED={};
+  if(j&&Array.isArray(j.games)){j.games.forEach(g=>{
+   for(const md of MATCHDAYS)for(const m of md.games){
+    if(m[0]===g.home&&m[1]===g.away){if(g.oH)m[4]=+g.oH;if(g.oD)m[5]=+g.oD;if(g.oA)m[6]=+g.oA;}}
+   FEED[g.home+"|"+g.away]={status:g.status,scoreH:g.scoreH,scoreA:g.scoreA,coH:g.coH,coD:g.coD,coA:g.coA};});}
+  feedConnected=true;buildState();render();renderPaper();document.getElementById("kpi-updated").textContent=nowTime();
+ }catch(e){feedConnected=false;}
+ finally{updateFeedStatus();}
+}
+function liveBadge(s){const lv=FEED[s.home+"|"+s.away];
+ if(!lv||lv.scoreH==null||lv.scoreA==null)return"";
+ const fin=lv.status==="FINISHED";
+ return `<span class="livebox ${fin?'fin':'on'}">${fin?'FT':'<span class="ld"></span> LIVE'} ${lv.scoreH}–${lv.scoreA}</span>`;}
+
+/* ============ i18n apply ============ */
+function applyStaticI18n(){
+ document.querySelectorAll("[data-i18n]").forEach(el=>el.innerHTML=t(el.dataset.i18n));
+ document.querySelectorAll("[data-i18n-ph]").forEach(el=>el.placeholder=t(el.dataset.i18nPh));
+ document.documentElement.lang=lang;document.documentElement.dir=(lang==="ar")?"rtl":"ltr";
+}
+function buildLangSelect(){const sel=document.getElementById("lang");
+ sel.innerHTML=Object.keys(I18N).map(c=>`<option value="${c}" ${c===lang?"selected":""}>${I18N[c].langName}</option>`).join("");
+ sel.addEventListener("change",()=>setLang(sel.value));}
+function setLang(c){lang=I18N[c]?c:"en";localStorage.setItem("wc_lang",lang);
+ applyStaticI18n();render();renderPicks();renderValue();renderStrategies();renderPaper();updateFeedStatus();document.getElementById("kpi-updated").textContent=nowTime();}
+
+/* ============ INIT ============ */
+let autoTimer=null,autoOn=true;
+function setAuto(on){autoOn=on;document.getElementById("autoSwitch").classList.toggle("on",on);
+ if(autoTimer)clearInterval(autoTimer);if(on)autoTimer=setInterval(tryFetchData,60000);}
+buildLangSelect();applyStaticI18n();buildState();render();renderFavs();renderPicks();renderTicker();renderValue();renderStrategies();renderPaper();
+updateFeedStatus();document.getElementById("kpi-updated").textContent=nowTime();setAuto(true);tryFetchData();
+document.getElementById("bankroll").addEventListener("input",e=>{BANKROLL=Math.max(0,+e.target.value||0);renderValue();renderPaper();});
+document.getElementById("stakeBudget").addEventListener("input",e=>{STAKE_BUDGET=Math.max(0,+e.target.value||0);renderStrategies();});
+document.getElementById("recalc").addEventListener("click",()=>{buildState();render();document.getElementById("kpi-updated").textContent=nowTime();});
+document.getElementById("autoSwitch").addEventListener("click",()=>setAuto(!autoOn));
+const searchEl=document.getElementById("search"),clearEl=document.getElementById("searchClear");
+searchEl.addEventListener("input",()=>{searchQuery=searchEl.value.trim();clearEl.classList.toggle("show",!!searchQuery);render();});
+clearEl.addEventListener("click",()=>{searchEl.value="";searchQuery="";clearEl.classList.remove("show");render();searchEl.focus();});
+document.querySelectorAll("#filter button").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll("#filter button").forEach(x=>x.classList.remove("active"));b.classList.add("active");currentFilter=b.dataset.f;render();}));
+</script>
+</body>
+</html>

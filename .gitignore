@@ -1,0 +1,16 @@
+# dependencies / build
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+
+# secrets — never commit API keys
+*.env
+.env*
+wrangler.toml.local
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

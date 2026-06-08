@@ -1,0 +1,30 @@
+{
+  "updated": null,
+  "_comment": "Placeholder feed. The Cloudflare Worker (wm-worker/) overwrites this with real fixtures + scores. status: SCHEDULED|TIMED|IN_PLAY|PAUSED|FINISHED. scoreH/scoreA are null until a match is live/finished.",
+  "games": [
+    {"home":"Mexico","away":"South Africa","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"South Korea","away":"Czechia","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Canada","away":"Bosnia-Herz.","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"USA","away":"Paraguay","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Qatar","away":"Switzerland","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Brazil","away":"Morocco","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Haiti","away":"Scotland","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Australia","away":"Turkey","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Germany","away":"Curaçao","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Netherlands","away":"Japan","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Ivory Coast","away":"Ecuador","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Sweden","away":"Tunisia","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Spain","away":"Cape Verde","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Belgium","away":"Egypt","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Saudi Arabia","away":"Uruguay","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Iran","away":"New Zealand","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"France","away":"Senegal","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Iraq","away":"Norway","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Argentina","away":"Algeria","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Austria","away":"Jordan","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Portugal","away":"DR Congo","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"England","away":"Croatia","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Ghana","away":"Panama","status":"SCHEDULED","scoreH":null,"scoreA":null},
+    {"home":"Uzbekistan","away":"Colombia","status":"SCHEDULED","scoreH":null,"scoreA":null}
+  ]
+}

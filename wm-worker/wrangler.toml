@@ -1,0 +1,17 @@
+name = "wm-2026-feed"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+# Cron: refresh every 10 minutes. During match days you can lower to "*/2 * * * *".
+[triggers]
+crons = ["*/10 * * * *"]
+
+# KV namespace that stores the cached JSON.
+# Create it with:  wrangler kv namespace create WMKV
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "WMKV"
+id = "PASTE_YOUR_KV_NAMESPACE_ID_HERE"
+
+# The API token is a SECRET, not stored here. Set it with:
+#   wrangler secret put FOOTBALL_DATA_KEY
